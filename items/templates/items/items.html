@@ -1,0 +1,92 @@
+{% extends "Dragonfly/base.html" %}
+{% load static %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+{% if user_items %}
+<div style="width: device-width;">
+    <div style="width: 50%; float: left; padding-right: 2px; padding-top: 5px; padding-left: 5px; overflow: hidden;">
+        <table class="table-responsive">
+            <table class="table table-condensed table-striped table-dark" style="width: 100%;">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col" colspan="{{ items.0.column_values|length|add:'2' }}" style="background-color: #222222;"><center>My Items</center></th>
+                    </tr>
+                    <tr>
+                        <th scope="col">#</th>
+                        {% for value in items.0.column_values %}
+                            {% if forloop.counter == 1 %}
+                            <th scope="col" style="width: 99%;">{{ value }}</th>
+                            {% else %}
+                            <th scope="col">{{ value }}</th>
+                            {% endif %}
+                        {% endfor %}
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in user_items %}
+                        <tr>
+                        <th scope="row">{{ forloop.counter }}</th>
+                        {% for value in item.row_values %}
+                            <td>{{ value }}</td>
+                        {% endfor %}
+                        <td style="padding: 5px 5px 7px;">
+                            <p style="height: 30px; padding: 0px 0px 0px; float: right;"><span class="btn-group">
+                                <button class="btn check"><i class="fa"></i>&#10003;</button>
+                                <button class="btn btn-secondary btn-sm">View</button>
+                                <button class="btn trash"><i class="fa fa-trash"></i></button>
+                            </span></p>
+                        </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </table>
+    </div>
+    {% endif %}
+        
+    {% if items %}
+    <div style="width: 50%; float: right; padding-left: 2px; padding-top: 5px; padding-right: 5px; overflow: hidden;">
+        <table class="table-responsive">
+            <table class="table table-condensed table-striped table-dark" style="width: 100%;">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col" colspan="{{ items.0.column_values|length|add:'2' }}" style="background-color: #222222;"><center>Recent Items</center></th>
+                    </tr>
+                    <tr>
+                        <th scope="col">#</th>
+                        {% for value in items.0.column_values %}
+                            {% if forloop.counter == 1 %}
+                            <th scope="col" style="width: 99%;">{{ value }}</th>
+                            {% else %}
+                            <th scope="col">{{ value }}</th>
+                            {% endif %}
+                        {% endfor %}
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                        <tr>
+                        <th scope="row">{{ forloop.counter }}</th>
+                        {% for value in item.row_values %}
+                            <td>{{ value }}</td>
+                        {% endfor %}
+                        <td style="padding: 5px 5px 7px;">
+                            <p style="height: 30px; padding: 0px 0px 0px; float: right;"><span class="btn-group">
+                                <button class="btn btn-secondary btn-sm">View</button>
+                                <button class="btn trash"><i class="fa fa-trash"></i></button>
+                            </span></p>
+                        </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

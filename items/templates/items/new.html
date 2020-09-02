@@ -1,0 +1,46 @@
+{% extends "Dragonfly/base.html" %}
+{% load static %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div style="width: device-width;">
+    <div class="card" style="width: 65%; margin: 0 auto; padding: 2px 2px 2px; margin-top: 20px;">
+        <div style="padding: 10px 10px 10px;">
+            <form method="post" id="item_form"> {% csrf_token %}
+                <div style="float: left; clear: both; width: 100%;">Title:</div>
+                <div style="float: left; clear: both; width: 100%;">{{ form.title }}</div>
+                <div style="float: left; clear: both; width: 100%;">Description:</div>
+                <div style="float: left; clear: both; width: 100%;">{{ form.description }}</div>
+                <div style="float: left; clear: both; width: 100%;">Priority:</div>
+                <div style="float: left; clear: both; width: 100%;">{{ form.priority }}</div>
+                <div style="float: left; clear: both; width: 100%;">Assign To:</div>
+                <div style="float: left; clear: both; width: 100%;">{{ form.assigned_to }}</div>
+                <div style="float: left; clear: both; width: 100%;">Categories</div>
+                <div style="float: left; clear: both; width: 100%;">{{ form.tag_bug }} Bug</div>
+                <div style="float: left; clear: both; width: 100%;">{{ form.tag_feature }} Feature</div>
+                <div style="float: left; clear: both; width: 100%;">{{ form.tag_task }} Task</div>
+                <button type="submit" class="btn btn-success" style="width: 25%; float: right;">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+
+    // Toggle color of category buttons
+    function change_color(element) {
+        console.log(element.className);
+        if (element.className == "btn btn-secondary btn-sm" || element.className == "btn btn-secondary btn-sm focus" || element.className == "btn btn-secondary btn-sm active focus" || element.className == "btn btn-secondary btn-sm active") {
+            element.setAttribute("class", "btn btn-primary btn-sm active");
+        } else {
+            element.className = "btn btn-secondary btn-sm active";
+        }
+        
+    }
+</script>
+{% endblock %}
