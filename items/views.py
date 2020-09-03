@@ -24,10 +24,6 @@ class ItemsView(View):
             "user_items": user_items if user_items else None,
         })
 
-def remove(request, id):
-    Item.objects.get(id=id).delete()
-    return redirect(request.META.get('HTTP_REFERER'))
-
 def resolve(request, id):
     item = Item.objects.get(id=id)
     item.resolved = True
@@ -45,6 +41,7 @@ class ItemDetailView(View):
     def get(self, request, pk=-1):
         if pk == -1:
             form = ItemForm()
+            instance = form.instance
         else:
             instance = Item.objects.get(pk=pk)
             form = ItemForm(instance=instance)
@@ -64,6 +61,8 @@ class ItemDetailView(View):
         return render(request, "items/item_detail.html" , {
             "form": form,
             "tags": Tag.objects.all(),
+            "editing": True if pk != -1 else False,
+            "resolved": instance.resolved,
         })
 
     def post(self, request, pk=-1):
@@ -71,32 +70,47 @@ class ItemDetailView(View):
             user = UserProfile.objects.get(user=request.user)
         except:
             user = UserProfile.objects.get(user__username="default")
-        form = ItemForm(request.POST)
-        if form.is_valid():
-            instance = form.save(commit=False)
-            if pk != -1:
-                instance.pk = pk
-            instance.user = user
-            instance.date_created = timezone.now()
-            instance.priority = request.POST.get("priority")
-            instance.save()
-            current_tags = [tag for tag in instance.tags.all()]
-            tags = [field.split("_")[1] for field in request.POST if field.startswith("tag_")]
-            for tag in current_tags:
-                if tag not in tags:
-                    instance.tags.remove(tag)
-            for tag in tags:
-                instance.tags.add(tag)
-            
-            
-            user_name = request.POST.get("assigned_to")
-            user_profile = UserProfile.objects.get(user__username=user_name)
-            if user_profile:
-                instance.assigned = user_profile
-            else:
-                instance.assigned = UserProfile.objects.get(user__username="default")
+
+        if pk != -1 and "button_delete" in request.POST:
+            Item.objects.get(pk=pk).delete()
+            return redirect("items")
+        elif pk != -1 and "button_resolve" in request.POST:
+            instance = Item.objects.get(pk=pk)
+            instance.resolved = True
             instance.save()
             return redirect("items")
+        elif pk != -1 and "button_unresolve" in request.POST:
+            instance = Item.objects.get(pk=pk)
+            instance.resolved = False
+            instance.save()
+            return redirect("items")
+        else:
+            form = ItemForm(request.POST)
+            if form.is_valid():
+                instance = form.save(commit=False)
+                if pk != -1:
+                    instance.pk = pk
+                instance.user = user
+                instance.date_created = timezone.now()
+                instance.priority = request.POST.get("priority")
+                instance.save()
+                current_tags = [tag for tag in instance.tags.all()]
+                tags = [field.split("_")[1] for field in request.POST if field.startswith("tag_")]
+                for tag in current_tags:
+                    if tag not in tags:
+                        instance.tags.remove(tag)
+                for tag in tags:
+                    instance.tags.add(tag)
+                
+                
+                user_name = request.POST.get("assigned_to")
+                user_profile = UserProfile.objects.get(user__username=user_name)
+                if user_profile:
+                    instance.assigned = user_profile
+                else:
+                    instance.assigned = UserProfile.objects.get(user__username="default")
+                instance.save()
+                return redirect("items")
 
         return render(request, "items/item_detail.html" , {
             "form": form,

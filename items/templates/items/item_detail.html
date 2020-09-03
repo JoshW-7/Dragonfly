@@ -21,7 +21,13 @@
                 <div style="float: left; clear: both; width: 100%;">{{ form.tag_bug }} Bug</div>
                 <div style="float: left; clear: both; width: 100%;">{{ form.tag_feature }} Feature</div>
                 <div style="float: left; clear: both; width: 100%;">{{ form.tag_task }} Task</div>
-                <button type="submit" class="btn btn-success" style="width: 25%; float: right;">Submit</button>
+                {% if editing %}
+                <button type="submit" name="{% if resolved %}button_unresolve{% else %}button_resolve{% endif%}" class="btn {% if resolved %}btn-warning{% else %}btn-success{% endif%}" style="width: 15%; float: right; margin-left: 10px;">{% if resolved %}Unresolve{% else %}Resolve{% endif %}</button>
+                {% endif %}
+                <button type="submit" name="button_submit" class="btn btn-primary" style="width: 15%; float: right; margin-left: 10px;">{% if editing %}Update{% else %}Submit{% endif %}</button>
+                {% if editing %}
+                <button type="submit" name="button_delete" class="btn btn-danger" style="width: 15%; float: right; margin-left: 10px;">Delete</button>
+                {% endif %}
             </form>
         </div>
     </div>
