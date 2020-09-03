@@ -17,7 +17,7 @@
                 <div style="float: left; clear: both; width: 100%;">{{ form.priority }}</div>
                 <div style="float: left; clear: both; width: 100%;">Assign To:</div>
                 <div style="float: left; clear: both; width: 100%;">{{ form.assigned_to }}</div>
-                <div style="float: left; clear: both; width: 100%;">Categories</div>
+                <div style="float: left; clear: both; width: 100%;">Tags:</div>
                 <div style="float: left; clear: both; width: 100%;">{{ form.tag_bug }} Bug</div>
                 <div style="float: left; clear: both; width: 100%;">{{ form.tag_feature }} Feature</div>
                 <div style="float: left; clear: both; width: 100%;">{{ form.tag_task }} Task</div>
@@ -31,16 +31,5 @@
 
 {% block script %}
 <script type="text/javascript">
-
-    // Toggle color of category buttons
-    function change_color(element) {
-        console.log(element.className);
-        if (element.className == "btn btn-secondary btn-sm" || element.className == "btn btn-secondary btn-sm focus" || element.className == "btn btn-secondary btn-sm active focus" || element.className == "btn btn-secondary btn-sm active") {
-            element.setAttribute("class", "btn btn-primary btn-sm active");
-        } else {
-            element.className = "btn btn-secondary btn-sm active";
-        }
-        
-    }
 </script>
 {% endblock %}

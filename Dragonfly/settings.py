@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     'Dragonfly',
     'items',
+    'projects',
     'users',
     'taggit',
 ]

@@ -20,7 +20,7 @@ class ItemForm(forms.ModelForm):
             })
         }
 
-    priority = forms.CharField(widget=forms.Select(choices=[("", ""), ("low", "Low"), ("medium", "Medium"), ("high", "High")]))
+    priority = forms.CharField(widget=forms.Select(attrs={"class": "bootstrap-select"}, choices=[("none", ""), ("low", "Low"), ("medium", "Medium"), ("high", "High")]))
     assigned_to = forms.CharField(widget=forms.Select(
         choices=sorted([
             (user_profile.user.username, user_profile.display_name) for user_profile in UserProfile.objects.all()

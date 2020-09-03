@@ -8,36 +8,35 @@
 {% if user_items %}
 <div style="width: device-width;">
     <div style="width: 50%; float: left; padding-right: 2px; padding-top: 5px; padding-left: 5px; overflow: hidden;">
-        <table class="table-responsive">
-            <table class="table table-condensed table-striped table-dark" style="width: 100%;">
+        <table class="table-responsive" style="font-size: 1vw;">
+            <table class="table table-condensed table-dark" style="width: 100%;">
                 <thead class="thead-dark">
                     <tr>
                         <th scope="col" colspan="{{ items.0.column_values|length|add:'2' }}" style="background-color: #222222;"><center>My Items</center></th>
                     </tr>
                     <tr>
-                        <th scope="col">#</th>
                         {% for value in items.0.column_values %}
-                            {% if forloop.counter == 1 %}
-                            <th scope="col" style="width: 99%;">{{ value }}</th>
-                            {% else %}
                             <th scope="col">{{ value }}</th>
-                            {% endif %}
                         {% endfor %}
                         <th scope="col">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in user_items %}
-                        <tr>
-                        <th scope="row">{{ forloop.counter }}</th>
+                        <tr {% if item.resolved %}style="background: #375d33;"{% endif %}>
                         {% for value in item.row_values %}
                             <td>{{ value }}</td>
                         {% endfor %}
                         <td style="padding: 5px 5px 7px;">
-                            <p style="height: 30px; padding: 0px 0px 0px; float: right;"><span class="btn-group">
-                                <button class="btn check"><i class="fa"></i>&#10003;</button>
-                                <button class="btn btn-secondary btn-sm">View</button>
-                                <button class="btn trash"><i class="fa fa-trash"></i></button>
+                            <p style="height: 30px; padding: 0px 0px 0px; float: right;"><span>
+                                <button id="{{ item.id }}" name="button_view" class="btn normal">View</button>
+                                {% if item.resolved %}
+                                <button id="{{ item.id }}" name="button_unresolve" class="btn uncheck">Unresolve</button>
+                                {% else %}
+                                <button id="{{ item.id }}" name="button_resolve" class="btn check">Resolve</button>
+                                {% endif %}
+                                <button id="{{ item.id }}" name="button_edit" class="btn btn-secondary" hidden>Edit</button>
+                                <button id="{{ item.id }}" name="button_resolve" class="btn trash" hidden>Delete</button>
                             </span></p>
                         </td>
                         </tr>
@@ -51,34 +50,28 @@
     {% if items %}
     <div style="width: 50%; float: right; padding-left: 2px; padding-top: 5px; padding-right: 5px; overflow: hidden;">
         <table class="table-responsive">
-            <table class="table table-condensed table-striped table-dark" style="width: 100%;">
+            <table class="table table-condensed table-dark" style="width: 100%;">
                 <thead class="thead-dark">
                     <tr>
                         <th scope="col" colspan="{{ items.0.column_values|length|add:'2' }}" style="background-color: #222222;"><center>Recent Items</center></th>
                     </tr>
                     <tr>
-                        <th scope="col">#</th>
                         {% for value in items.0.column_values %}
-                            {% if forloop.counter == 1 %}
-                            <th scope="col" style="width: 99%;">{{ value }}</th>
-                            {% else %}
                             <th scope="col">{{ value }}</th>
-                            {% endif %}
                         {% endfor %}
                         <th scope="col">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in items %}
-                        <tr>
-                        <th scope="row">{{ forloop.counter }}</th>
+                        <tr {% if item.resolved %}style="background: #375d33;"{% endif %}>
                         {% for value in item.row_values %}
                             <td>{{ value }}</td>
                         {% endfor %}
                         <td style="padding: 5px 5px 7px;">
                             <p style="height: 30px; padding: 0px 0px 0px; float: right;"><span class="btn-group">
                                 <button class="btn btn-secondary btn-sm">View</button>
-                                <button class="btn trash"><i class="fa fa-trash"></i></button>
+                                <button id="{{ item.id }}" name="button_trash" class="btn trash"><i class="fa fa-trash"></i></button>
                             </span></p>
                         </td>
                         </tr>
@@ -89,4 +82,87 @@
     </div>
     {% endif %}
 </div>
+
+<div class="bg-modal">
+    <div class="modal-content">
+        <h2>Are you sure?</h2>
+        <div>
+            <button id="button_no" class="btn btn-danger btn" style="width: 49%; float: left; height: 60px; border-radius: 10px;">No</button>
+            <button id="button_yes" class="btn btn-success btn" style="width: 49%; float: right; height: 60px; border-radius: 10px;" href="">Yes</button>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+
+    var last_id_clicked;
+    var action;
+
+    function post_action() {
+        $.ajax({
+            type: "POST",
+            url: "/" + action + "/" + last_id_clicked,
+            data: {
+                "csrfmiddlewaretoken": "{{ csrf_token }}"
+            },
+            success: function() {
+                window.location.reload(true);
+            }
+        });
+    }
+
+    // Set up event listeners for each view button
+    var buttons = document.getElementsByName("button_view");
+    buttons.forEach(function(button, index) {
+        button.addEventListener("click", function() {
+            last_id_clicked = button.id;
+            location.href = "/item/" + last_id_clicked;
+        })
+    })
+
+    // Set up event listeners for each trash button
+    var buttons = document.getElementsByName("button_trash");
+    buttons.forEach(function(button, index) {
+        button.addEventListener("click", function() {
+            last_id_clicked = button.id;
+            action = "remove";
+            document.querySelector(".bg-modal").style.display = "flex";
+        })
+    })
+
+    // Set up event listeners for each resolve button
+    var buttons = document.getElementsByName("button_resolve");
+    buttons.forEach(function(button, index) {
+        button.addEventListener("click", function() {
+            last_id_clicked = button.id;
+            action = "resolve";
+            post_action();
+            //document.querySelector(".bg-modal").style.display = "flex";
+        })
+    })
+
+    // Set up event listeners for each unresolve button
+    var buttons = document.getElementsByName("button_unresolve");
+    buttons.forEach(function(button, index) {
+        button.addEventListener("click", function() {
+            last_id_clicked = button.id;
+            action = "unresolve";
+            post_action();
+            //document.querySelector(".bg-modal").style.display = "flex";
+        })
+    })
+
+    // When the yes button is clicked, post the item id to /<action>/<id>
+    document.getElementById("button_yes").addEventListener("click", function() {
+        post_action();
+    })
+
+    // When the no button is clicked, remove the popup
+    document.getElementById("button_no").addEventListener("click", function() {
+        document.querySelector(".bg-modal").style.display = "none";
+    })
+</script>
 {% endblock %}
