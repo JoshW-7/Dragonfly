@@ -12,6 +12,7 @@
             <div style="padding: 10px 10px 10px;">
                 <form method="post" id="item_form"> {% csrf_token %}
                     {% if editing %}
+                    <h2 style="float: left;">Item {{ form.instance.pk }}</h2>
                     <button type="submit" name="{% if resolved %}button_unresolve{% else %}button_resolve{% endif%}" class="btn {% if resolved %}btn-warning{% else %}btn-success{% endif%}" style="width: 15%; float: right; margin-left: 10px;">{% if resolved %}Unresolve{% else %}Resolve{% endif %}</button>
                     {% endif %}
                     <div style="float: left; clear: both; width: 100%;">Title:</div>
@@ -55,6 +56,33 @@
             </div>
         </div>
     </div>
+    <br>
+
+    {% for comment in comments %}
+    <div style="width: 80%; margin: 0 auto;">
+        <div class="card" style="width: 75%; float: left; margin-left: 0.5%; margin-right: 0.5%; margin-top: 10px;">
+            <div style="padding: 10px 10px 10px;">
+                <div style="float: left; width: 50%;"><b>{{ comment.user.display_name }}</b></div>
+                <div style="float: right; width: 50%; text-align: right;">{{ comment.date_created }}</div>
+                {{ comment.body }}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if editing %}
+    <div style="width: 80%; margin: 0 auto;">
+        <div class="card" style="width: 75%; float: left; margin-left: 0.5%; margin-right: 0.5%; margin-top: 10px;">
+            <div style="padding: 10px 10px 10px;">
+                <form method="post" id="comment_form" action="comment"> {% csrf_token %}
+                    <p>{{ comment_form.body }}</p>
+                    <button type="submit" name="button_submit" class="btn btn-primary" style="width: 15%; float: right; margin-left: 10px; margin-top: 7px;">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 
 <div class="bg-modal">

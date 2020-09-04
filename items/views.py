@@ -8,8 +8,8 @@ from taggit.models import Tag
 from users.models import UserProfile
 from projects.models import Project
 
-from .models import Item, File
-from .forms import ItemForm
+from .models import Item, File, Comment
+from .forms import ItemForm, CommentForm
 
 
 class ItemsView(View):
@@ -28,12 +28,16 @@ class ItemsView(View):
 
 class ItemDetailView(View):
     def get(self, request, pk=-1):
+        comment_form = None
+        comments = []
         if pk == -1:
             form = ItemForm()
             instance = form.instance
         else:
             instance = Item.objects.get(pk=pk)
             form = ItemForm(instance=instance)
+            comment_form = CommentForm()
+            comments = Comment.objects.filter(item=instance).order_by("date_created")
 
             if instance.project:
                 form.fields["project"].initial = [instance.project.pk]
@@ -53,6 +57,8 @@ class ItemDetailView(View):
  
         return render(request, "items/item_detail.html" , {
             "form": form,
+            "comment_form": comment_form,
+            "comments": comments,
             "tags": Tag.objects.all(),
             "editing": True if pk != -1 else False,
             "resolved": instance.resolved,
@@ -96,6 +102,8 @@ class ItemDetailView(View):
                     instance.project = project
 
                 instance.save()
+
+                comments = Comment.objects.filter(item=instance).order_by("-date_created")
                 current_tags = [tag for tag in instance.tags.all()]
                 tags = [field.split("_")[1] for field in request.POST if field.startswith("tag_")]
                 for tag in current_tags:
@@ -103,7 +111,6 @@ class ItemDetailView(View):
                         instance.tags.remove(tag)
                 for tag in tags:
                     instance.tags.add(tag)
-                
                 
                 user_name = request.POST.get("assigned_to")
                 user_profile = UserProfile.objects.get(user__username=user_name)
@@ -116,6 +123,7 @@ class ItemDetailView(View):
 
         return render(request, "items/item_detail.html" , {
             "form": form,
+            "comments": comments,
             "tags": Tag.objects.all(),
         })
 
@@ -151,4 +159,13 @@ def upload(request, id):
     new_file.item = Item.objects.get(id=id)
     new_file.name = uploaded_file.name
     new_file.save()
+    return redirect(request.META.get('HTTP_REFERER'))
+
+def comment(request, id):
+    comment_form = CommentForm(request.POST)
+    if comment_form.is_valid():
+        comment = comment_form.save(commit=False)
+        comment.user = UserProfile.objects.get(user=request.user)
+        comment.item = Item.objects.get(id=id)
+        comment.save()
     return redirect(request.META.get('HTTP_REFERER'))

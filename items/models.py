@@ -60,3 +60,14 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
         filepath = "/".join(instance.file.url.split("/")[-2:])
         if os.path.isfile(filepath):
             os.remove(filepath)
+
+
+class Comment(models.Model):
+    date_created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    body = models.TextField()
+
+    def __str__(self):
+        return f"<Comment: {self.item}>"
+

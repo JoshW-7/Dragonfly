@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Item
+from .models import Item, Comment
 
 from users.models import UserProfile
 from projects.models import Project
@@ -48,3 +48,9 @@ class ItemForm(forms.ModelForm):
     tag_task = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={
         "class": "tag_checkbox",
     }))
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ["body"]

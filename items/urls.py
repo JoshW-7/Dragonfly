@@ -13,4 +13,5 @@ urlpatterns = [
     path('item/<str:id>/remove', views.remove, name="remove"),
     path('item/<str:id>/remove_file', views.remove_file, name="remove_file"),
     path('item/<str:id>/upload', views.upload, name="upload"),
+    path('item/<str:id>/comment', views.comment, name="comment"),
 ]
