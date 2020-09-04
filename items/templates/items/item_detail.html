@@ -7,8 +7,8 @@
 {% block content %}
 <div style="width: device-width;">
     <br>
-    <div style="width: 80%; margin: 0 auto;">
-        <div class="card" style="width: 75%; float: left; margin-left: 0.5%; margin-right: 0.5%;">
+    <div style="width: 90%; margin: 0 auto;">
+        <div class="card" style="width: 65%; float: left; margin-left: 0.5%; margin-right: 0.5%;">
             <div style="padding: 10px 10px 10px;">
                 <form method="post" id="item_form"> {% csrf_token %}
                     {% if editing %}
@@ -42,48 +42,70 @@
                 {% endif %}
             </div>
         </div>
+        {% if editing %}
         <div class="card" style="width: auto; margin-right: 0.5%;">
             <div style="padding: 10px 10px 10px;">
-                <h3>Attached Files:</h3>
+                <h3>Attachments</h3>
                 {% for file in files %}
                 <div style="float: left; clear: both; width: 100%; margin-top: 5px;">
                     <form method="post" id="form_remove_file" action="remove_file"> {% csrf_token %}
                         <input type="number" id="file_id" name="file_id" hidden>
-                        <a href="{{ file.get_link }}">{{ file.name }}</a> <button name="button_remove_file"  onclick="remove_file({{ file.pk }}); return false;" class="btn btn-danger btn-sm">X</button>
+                        <a href="{{ file.get_link }}">{{ file.name }}</a> <button name="button_remove_file"  onclick="remove_file({{ file.pk }}); return false;" class="btn btn-danger btn-sm">Delete</button>
                     </form>
                 </div>
                 {% endfor %}
             </div>
         </div>
+        <div class="card" style="width: auto; margin-right: 0.5%;  margin-top: 10px;">
+            <div style="padding: 10px 10px 10px;">
+                <h3>Relations</h3>
+                {% for related_item in form.instance.get_relations %}
+                    <form method="post" id="form_remove_relation" action="remove_relation"> {% csrf_token %}
+                        <a href="{% url 'item' pk=related_item.id %}">{{ related_item.id }} - {{ related_item.title }}</a>
+                        <input type="number" value="{{ related_item.id }}" id="related_id" name="related_id" hidden>
+                        <button name="button_remove_relation" class="btn btn-warning btn-sm" style="float: right;">Remove Relation</button>
+                    </form>
+                {% endfor %}
+                <div style="float: left; clear: both; width: 100%; margin-top: 5px;">
+                    <form method="post" id="form_add_relation" action="add_relation"> {% csrf_token %}
+                        <input type="number" id="related_id" name="related_id" placeholder="Item Number" style="width: 70%;">
+                        <button name="button_add_relation" class="btn btn-secondary btn-sm" style="float: right; width: 28%;">Add Relation</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
-    <br>
+
+    <span style="float: left; clear: both; width: 100%; padding-top: 25px;"></span>
 
     {% for comment in comments %}
-    <div style="width: 80%; margin: 0 auto;">
-        <div class="card" style="width: 75%; float: left; margin-left: 0.5%; margin-right: 0.5%; margin-top: 10px;">
+    <div style="width: 90%; margin: 0 auto;">
+        <div class="card" style="width: 65%; float: left; margin-left: 0.5%; margin-right: 0.5%; margin-top: 10px;">
             <div style="padding: 10px 10px 10px;">
                 <div style="float: left; width: 50%;"><b>{{ comment.user.display_name }}</b></div>
                 <div style="float: right; width: 50%; text-align: right;">{{ comment.date_created }}</div>
-                {{ comment.body }}
+                <div style="margin-left: 1em;">{{ comment.body|linebreaks }}</div>
             </div>
         </div>
     </div>
     {% endfor %}
 
     {% if editing %}
-    <div style="width: 80%; margin: 0 auto;">
+    <div style="width: 90%; margin: 0 auto;">
         <div class="card" style="width: 75%; float: left; margin-left: 0.5%; margin-right: 0.5%; margin-top: 10px;">
             <div style="padding: 10px 10px 10px;">
                 <form method="post" id="comment_form" action="comment"> {% csrf_token %}
-                    <p>{{ comment_form.body }}</p>
+                    {{ comment_form.body }}
                     <button type="submit" name="button_submit" class="btn btn-primary" style="width: 15%; float: right; margin-left: 10px; margin-top: 7px;">Submit</button>
                 </form>
             </div>
         </div>
     </div>
     {% endif %}
-
 </div>
+<span style="float: left; clear: both; width: 100%; padding-top: 200px;"></span>
+
 
 <div class="bg-modal">
     <div class="modal-content">
@@ -95,6 +117,7 @@
         </div>
     </div>
 </div>
+
 
 {% endblock %}
 

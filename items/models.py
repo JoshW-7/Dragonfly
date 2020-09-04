@@ -24,6 +24,7 @@ class Item(models.Model):
     resolved = models.BooleanField(default=False)
     tags = TaggableManager(blank=True)
     project = models.ForeignKey(Project, null=True, on_delete=models.PROTECT)
+    related_items = models.ManyToManyField("self", through="ItemRelation")
 
     def __str__(self):
         return f"<Item: {self.title}>"
@@ -42,6 +43,27 @@ class Item(models.Model):
         date_updated = self.date_updated
         return [self.title, self.assigned.display_name, f"{date_updated.strftime('%B')} {date_updated.day} {date_updated.year}"]
 
+    def add_relation(self, item):
+        relation, created = ItemRelation.objects.get_or_create(
+            from_item=self,
+            to_item=item
+        )
+        return relation
+
+    def remove_relation(self, item):
+        ItemRelation.objects.filter(
+            from_item=self,
+            to_item=item,
+        ).delete()
+
+    def get_relations(self):
+        relations = self.related_items.filter(to_items__from_item=self)
+        return relations
+
+
+class ItemRelation(models.Model):
+    from_item = models.ForeignKey(Item, related_name="from_items", on_delete=models.CASCADE)
+    to_item = models.ForeignKey(Item, related_name="to_items", on_delete=models.CASCADE)
 
 class File(models.Model):
     file = models.FileField(upload_to="items/files/")

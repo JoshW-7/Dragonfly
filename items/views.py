@@ -153,12 +153,60 @@ def remove_file(request, id):
 def upload(request, id):
     uploaded_file = request.FILES['file_document']
     fs = FileSystemStorage()
+    uploaded_file.name = uploaded_file.name.replace(" ", "")
     name = fs.save(uploaded_file.name, uploaded_file)
     new_file = File()
     new_file.file.name = fs.url(name)
     new_file.item = Item.objects.get(id=id)
     new_file.name = uploaded_file.name
     new_file.save()
+    return redirect(request.META.get('HTTP_REFERER'))
+
+def add_relation(request, id):
+    item = Item.objects.get(id=id)
+    related_item = None
+    related_id = None
+
+    try:
+        related_id = int(request.POST["related_id"])
+    except:
+        return redirect(request.META.get('HTTP_REFERER'))
+
+    try:
+        related_item = Item.objects.get(id=related_id)
+    except:
+        return redirect(request.META.get('HTTP_REFERER'))
+
+    if related_item and related_item != item:
+        for relation_item in item.get_relations():
+            if relation_item == related_item:
+                return redirect(request.META.get('HTTP_REFERER'))
+        item.add_relation(related_item)
+        item.save()
+        related_item.add_relation(item)
+        related_item.save()
+    return redirect(request.META.get('HTTP_REFERER'))
+    
+def remove_relation(request, id):
+    item = Item.objects.get(id=id)
+    related_item = None
+    related_id = None
+
+    try:
+        related_id = int(request.POST["related_id"])
+    except:
+        return redirect(request.META.get('HTTP_REFERER'))
+
+    try:
+        related_item = Item.objects.get(id=related_id)
+    except:
+        return redirect(request.META.get('HTTP_REFERER'))
+
+    if related_item and related_item != item:
+        item.remove_relation(related_item)
+        item.save()
+        related_item.remove_relation(item)
+        related_item.save()
     return redirect(request.META.get('HTTP_REFERER'))
 
 def comment(request, id):
