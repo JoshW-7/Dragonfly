@@ -1,7 +1,9 @@
 from django import forms
 
 from .models import Item
+
 from users.models import UserProfile
+from projects.models import Project
 
 
 class ItemForm(forms.ModelForm):
@@ -26,7 +28,15 @@ class ItemForm(forms.ModelForm):
             (user_profile.user.username, user_profile.display_name) for user_profile in UserProfile.objects.all()
         ], key=lambda k: k[1]),
         attrs={
-            "style": "min-width: 200px;"
+            "style": "min-width: 200px; max-width: 200px;"
+        }
+    ))
+    project = forms.CharField(widget=forms.Select(
+        choices=sorted([("none", "")] + [
+            (project.pk, project.title) for project in Project.objects.all()
+        ], key=lambda k: k[1]),
+        attrs={
+            "style": "min-width: 200px; max-width: 200px;"
         }
     ))
     tag_bug = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={

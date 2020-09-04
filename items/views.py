@@ -2,12 +2,13 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django.utils import timezone
 from django.views.generic import DetailView
+from django.core.files.storage import FileSystemStorage
 
 from taggit.models import Tag
-
 from users.models import UserProfile
+from projects.models import Project
 
-from .models import Item
+from .models import Item, File
 from .forms import ItemForm
 
 
@@ -24,18 +25,6 @@ class ItemsView(View):
             "user_items": user_items if user_items else None,
         })
 
-def resolve(request, id):
-    item = Item.objects.get(id=id)
-    item.resolved = True
-    item.save(update_time=False)
-    return redirect(request.META.get('HTTP_REFERER'))
-
-def unresolve(request, id):
-    item = Item.objects.get(id=id)
-    item.resolved = False
-    item.save(update_time=False)
-    return redirect(request.META.get('HTTP_REFERER'))
-
 
 class ItemDetailView(View):
     def get(self, request, pk=-1):
@@ -46,6 +35,10 @@ class ItemDetailView(View):
             instance = Item.objects.get(pk=pk)
             form = ItemForm(instance=instance)
 
+            if instance.project:
+                form.fields["project"].initial = [instance.project.pk]
+            else:
+                form.fields["project"].initial = [""]
             form.fields["priority"].initial = [instance.priority]
             form.fields["assigned_to"].initial = [instance.assigned]
             tags = [tag for tag in instance.tags.all()]
@@ -63,6 +56,7 @@ class ItemDetailView(View):
             "tags": Tag.objects.all(),
             "editing": True if pk != -1 else False,
             "resolved": instance.resolved,
+            "files": [file for file in File.objects.filter(item=instance)],
         })
 
     def post(self, request, pk=-1):
@@ -93,6 +87,14 @@ class ItemDetailView(View):
                 instance.user = user
                 instance.date_created = timezone.now()
                 instance.priority = request.POST.get("priority")
+                project = None
+                try:
+                    project = Project.objects.get(pk=request.POST.get("project"))
+                except:
+                    pass
+                if project:
+                    instance.project = project
+
                 instance.save()
                 current_tags = [tag for tag in instance.tags.all()]
                 tags = [field.split("_")[1] for field in request.POST if field.startswith("tag_")]
@@ -110,9 +112,43 @@ class ItemDetailView(View):
                 else:
                     instance.assigned = UserProfile.objects.get(user__username="default")
                 instance.save()
-                return redirect("items")
+                return redirect("item", pk=instance.pk)
 
         return render(request, "items/item_detail.html" , {
             "form": form,
             "tags": Tag.objects.all(),
         })
+
+def resolve(request, id):
+    item = Item.objects.get(id=id)
+    item.resolved = True
+    item.save(update_time=False)
+    return redirect(request.META.get('HTTP_REFERER'))
+
+def unresolve(request, id):
+    item = Item.objects.get(id=id)
+    item.resolved = False
+    item.save(update_time=False)
+    return redirect(request.META.get('HTTP_REFERER'))
+
+def remove(request, id):
+    Item.objects.get(id=id).delete()
+    return redirect("items")
+
+def remove_file(request, id):
+    file_id = request.POST.get("file_id")
+    if file_id:
+        File.objects.get(pk=file_id).delete()
+            
+    return redirect(request.META.get('HTTP_REFERER'))
+
+def upload(request, id):
+    uploaded_file = request.FILES['file_document']
+    fs = FileSystemStorage()
+    name = fs.save(uploaded_file.name, uploaded_file)
+    new_file = File()
+    new_file.file.name = fs.url(name)
+    new_file.item = Item.objects.get(id=id)
+    new_file.name = uploaded_file.name
+    new_file.save()
+    return redirect(request.META.get('HTTP_REFERER'))

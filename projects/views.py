@@ -2,6 +2,10 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django.utils import timezone
 
+from .forms import ProjectForm
+from .models import Project
+from users.models import UserProfile
+
 
 class ProjectsView(View):
     def get(self, request):
@@ -20,41 +24,40 @@ class ProjectsView(View):
         """
 
 
-class NewProjectView(View):
-    def get(self, request):
+class ProjectDetailView(View):
+    def get(self, request, pk=-1):
+        if pk == -1:
+            form = ProjectForm()
+            instance = form.instance
+        else:
+            instance = Project.objects.get(pk=pk)
+            form = ProjectForm(instance=instance)
 
-        """
-        form = ItemForm()
-        return render(request, "items/new.html" , {
+        return render(request, "projects/project_detail.html" , {
             "form": form,
-            "tags": Tag.objects.all(),
+            "editing": True if pk != -1 else False,
         })
-        """
 
-    def post(self, request):
-        """
+    def post(self, request, pk=-1):
         try:
             user = UserProfile.objects.get(user=request.user)
         except:
             user = UserProfile.objects.get(user__username="default")
-        form = ItemForm(request.POST)
-        if form.is_valid():
-            instance = form.save(commit=False)
-            instance.user = user
-            instance.date_created = timezone.now()
-            instance.save()
-            tags = [field.split("_")[1] for field in request.POST if field.startswith("tag_")]
-            for tag in tags:
-                instance.tags.add(tag)
-            user_name = request.POST.get("assigned_to")
-            user_profile = UserProfile.objects.get(user__username=user_name)
-            instance.assigned = user_profile
-            instance.save()
-            return redirect("items")
 
-        return render(request, "items/new.html" , {
+        if pk != -1 and "button_delete" in request.POST:
+            Project.objects.get(pk=pk).delete()
+            return redirect("items")
+        else:
+            form = ProjectForm(request.POST)
+            if form.is_valid():
+                instance = form.save(commit=False)
+                if pk != -1:
+                    instance.pk = pk
+                instance.user = user
+                instance.date_created = timezone.now()
+                instance.save()
+                return redirect("projects")
+
+        return render(request, "projects/project_detail.html" , {
             "form": form,
-            "tags": Tag.objects.all(),
         })
-        """
-        pass

@@ -1,0 +1,30 @@
+{% extends "Dragonfly/base.html" %}
+{% load static %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div style="width: device-width;">
+    <div class="card" style="width: 65%; margin: 0 auto; padding: 2px 2px 2px; margin-top: 20px;">
+        <div style="padding: 10px 10px 10px;">
+            <form method="post" id="item_form"> {% csrf_token %}
+                <div style="float: left; clear: both; width: 100%;">Title:</div>
+                <div style="float: left; clear: both; width: 100%;">{{ form.title }}</div>
+                <div style="float: left; clear: both; width: 100%;">Description:</div>
+                <div style="float: left; clear: both; width: 100%;">{{ form.description }}</div>
+                <button type="submit" name="button_submit" class="btn btn-primary" style="width: 15%; float: right; margin-left: 10px;">{% if editing %}Update{% else %}Submit{% endif %}</button>
+                {% if editing %}
+                <button type="submit" name="button_delete" class="btn btn-danger" style="width: 15%; float: right; margin-left: 10px;">Delete</button>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript">
+</script>
+{% endblock %}

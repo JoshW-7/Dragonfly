@@ -16,7 +16,8 @@
     <body>
         <div class="topnav">
             <a {% if request.path == '/' %}class="active"{% endif %} href="{% url 'items' %}">Overview</a>
-            <a {% if request.path|slice:":5" == '/item' %}class="active"{% endif %} href="{% url 'new_item' %}">New Item</a>
+            <a {% if request.path|slice:":9" == '/projects' %}class="active"{% endif %} href="{% url 'new_project' %}">New Project</a>
+            <a {% if request.path|slice:":11" == '/items/item' %}class="active"{% endif %} href="{% url 'new_item' %}">New Item</a>
             <a {% if request.path == '/profile/' %}class="active"{% endif %} href="{% url 'items' %}" style="float: right;" >Profile</a>
         </div>
 

@@ -6,29 +6,64 @@
 
 {% block content %}
 <div style="width: device-width;">
-    <div class="card" style="width: 65%; margin: 0 auto; padding: 2px 2px 2px; margin-top: 20px;">
-        <div style="padding: 10px 10px 10px;">
-            <form method="post" id="item_form"> {% csrf_token %}
-                <div style="float: left; clear: both; width: 100%;">Title:</div>
-                <div style="float: left; clear: both; width: 100%;">{{ form.title }}</div>
-                <div style="float: left; clear: both; width: 100%;">Description:</div>
-                <div style="float: left; clear: both; width: 100%;">{{ form.description }}</div>
-                <div style="float: left; clear: both; width: 100%;">Priority:</div>
-                <div style="float: left; clear: both; width: 100%;">{{ form.priority }}</div>
-                <div style="float: left; clear: both; width: 100%;">Assign To:</div>
-                <div style="float: left; clear: both; width: 100%;">{{ form.assigned_to }}</div>
-                <div style="float: left; clear: both; width: 100%;">Tags:</div>
-                <div style="float: left; clear: both; width: 100%;">{{ form.tag_bug }} Bug</div>
-                <div style="float: left; clear: both; width: 100%;">{{ form.tag_feature }} Feature</div>
-                <div style="float: left; clear: both; width: 100%;">{{ form.tag_task }} Task</div>
+    <br>
+    <div style="width: 80%; margin: 0 auto;">
+        <div class="card" style="width: 75%; float: left; margin-left: 0.5%; margin-right: 0.5%;">
+            <div style="padding: 10px 10px 10px;">
+                <form method="post" id="item_form"> {% csrf_token %}
+                    {% if editing %}
+                    <button type="submit" name="{% if resolved %}button_unresolve{% else %}button_resolve{% endif%}" class="btn {% if resolved %}btn-warning{% else %}btn-success{% endif%}" style="width: 15%; float: right; margin-left: 10px;">{% if resolved %}Unresolve{% else %}Resolve{% endif %}</button>
+                    {% endif %}
+                    <div style="float: left; clear: both; width: 100%;">Title:</div>
+                    <div style="float: left; clear: both; width: 100%;">{{ form.title }}</div>
+                    <div style="float: left; clear: both; width: 100%;">Description:</div>
+                    <div style="float: left; clear: both; width: 100%;">{{ form.description }}</div>
+                    <div style="float: left; clear: both; width: 100%;">Project:</div>
+                    <div style="float: left; clear: both; width: 100%;">{{ form.project }}</div>
+                    <div style="float: left; clear: both; width: 100%;">Priority:</div>
+                    <div style="float: left; clear: both; width: 100%;">{{ form.priority }}</div>
+                    <div style="float: left; clear: both; width: 100%;">Assign To:</div>
+                    <div style="float: left; clear: both; width: 100%;">{{ form.assigned_to }}</div>
+                    <div style="float: left; clear: both; width: 100%;">Tags:</div>
+                    <div style="float: left; clear: both; width: 100%;">{{ form.tag_bug }} Bug</div>
+                    <div style="float: left; clear: both; width: 100%;">{{ form.tag_feature }} Feature</div>
+                    <div style="float: left; clear: both; width: 100%;">{{ form.tag_task }} Task</div>
+                    <button type="submit" name="button_submit" class="btn btn-primary" style="width: 15%; float: right; margin-left: 10px; margin-top: 7px;">{% if editing %}Update{% else %}Submit{% endif %}</button>
+                    {% if editing %}
+                    <button name="button_delete" onclick="document.querySelector('.bg-modal').style.display = 'flex'; return false;" class="btn btn-danger" style="width: 15%; float: right; margin-left: 10px; margin-top: 7px;">Delete</button>
+                    {% endif %}
+                </form>
                 {% if editing %}
-                <button type="submit" name="{% if resolved %}button_unresolve{% else %}button_resolve{% endif%}" class="btn {% if resolved %}btn-warning{% else %}btn-success{% endif%}" style="width: 15%; float: right; margin-left: 10px;">{% if resolved %}Unresolve{% else %}Resolve{% endif %}</button>
+                <form method="post" enctype="multipart/form-data" id="form_attach_file" action="upload"> {% csrf_token %}
+                    <input type="file" name="file_document" id="file_document" hidden>
+                    <button name="button_attach" onclick="attach_file(); return false;" class="btn btn-secondary" style="width: 15%; float: left; margin-top: 7px;">Attach File</button>
+                </form>
                 {% endif %}
-                <button type="submit" name="button_submit" class="btn btn-primary" style="width: 15%; float: right; margin-left: 10px;">{% if editing %}Update{% else %}Submit{% endif %}</button>
-                {% if editing %}
-                <button type="submit" name="button_delete" class="btn btn-danger" style="width: 15%; float: right; margin-left: 10px;">Delete</button>
-                {% endif %}
-            </form>
+            </div>
+        </div>
+        <div class="card" style="width: auto; margin-right: 0.5%;">
+            <div style="padding: 10px 10px 10px;">
+                <h3>Attached Files:</h3>
+                {% for file in files %}
+                <div style="float: left; clear: both; width: 100%; margin-top: 5px;">
+                    <form method="post" id="form_remove_file" action="remove_file"> {% csrf_token %}
+                        <input type="number" id="file_id" name="file_id" hidden>
+                        <a href="{{ file.get_link }}">{{ file.name }}</a> <button name="button_remove_file"  onclick="remove_file({{ file.pk }}); return false;" class="btn btn-danger btn-sm">X</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-modal">
+    <div class="modal-content">
+        <h2>Are you sure?</h2>
+        <i>This will remove the item entirely</i>
+        <div>
+            <button id="button_no" class="btn btn-danger btn" style="width: 49%; float: left; height: 60px; border-radius: 10px;">No</button>
+            <button id="button_delete_yes" class="btn btn-success btn" style="width: 49%; float: right; height: 60px; border-radius: 10px;" href="">Yes</button>
         </div>
     </div>
 </div>
@@ -37,5 +72,46 @@
 
 {% block script %}
 <script type="text/javascript">
+    var button_delete = document.getElementById("button_delete_yes");
+
+    function attach_file() {
+        var file_input = document.getElementById('file_document')
+
+        file_input.onchange = e => { 
+            var file = e.target.files[0];
+            if (file) {
+                form = document.getElementById("form_attach_file");
+                form.submit();
+            }
+        }
+        file_input.click();
+    }
+
+    function remove_file(pk) {
+        form = document.getElementById("form_remove_file");
+        document.getElementById("file_id").value = parseInt(pk, 10);
+        form.submit();
+    }
+
+    function delete_item() {
+        $.ajax({
+            type: "POST",
+            url: "remove",
+            data: {
+                "csrfmiddlewaretoken": "{{ csrf_token }}"
+            },
+            success: function() {
+                window.location.href = "{% url 'items' %}";
+            }
+        });
+    }
+
+    button_delete.addEventListener("click", delete_item);
+
+    // When the no button is clicked, remove the popup
+    document.getElementById("button_no").addEventListener("click", function() {
+        document.querySelector(".bg-modal").style.display = "none";
+    })
+
 </script>
 {% endblock %}
