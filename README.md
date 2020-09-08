@@ -1,5 +1,5 @@
 # Dragonfly
-A bug-tracking web interface made with Django. Basic Features:
+A an item-tracking web interface made with Django. Basic Features:
 
 * Bug/Feature/Task tracking
 * Assignment of items to different users
